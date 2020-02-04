@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Simulación de pueblo</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+
+<body>
+    <div class="top">
+        <h1>Pueblo chico</h1>
+
+        <div class="control">
+            <p>Elija la cantidad de años durante los cuales correr la simulación:</p>
+            <input type="number" min="1" id="rangeSelector">
+            <button id="run" disabled>Correr simulación</button>
+            <div>
+                <p id="date"></p>
+                <p id="population"></p>
+            </div>
+        </div>
+
+    </div>
+        
+    <div class="left" id="families"></div>
+    <div class="right">
+        <dl id="logbook">
+
+        </dl>
+    </div>
+
+    <script src="main.js"></script>
+
+</body>
+
+</html>
