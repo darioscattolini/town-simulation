@@ -1,4 +1,5 @@
-/********* FAMILY AND PERSON CLASSES *********/
+/* FAMILY AND PERSON CLASSES
+**********************************************************************/
 class Family {
     constructor(firstSurname, secondSurname) {
         this.firstSurname = firstSurname,
@@ -186,7 +187,7 @@ const TOWN = {
         date: null,
         population: null,
         newImmigrant: null,
-        deaths: [],             //vaciar cada vuelta
+        deaths: [],
         marriages: [],
         births: []
     },
@@ -200,14 +201,14 @@ const TOWN = {
 
         for (let family of this.families) {
             for (let member of family.members) {
-                member.updateAge(today);    //cumple años?
+                member.updateAge(today);
 
-                if (member.diesToday()) {   //muere?
+                if (member.diesToday()) { 
                     this.handleDeath(member);
                 };
 
                 if (member.mate === null) {
-                    if (member.age >= 18) { //se casa?
+                    if (member.age >= 18) {
                         const candidates = this.getSuitableSingles(member);
                         if (candidates.length > 0 && member.marriesToday()) {
                             const mate = candidates[Math.floor(Math.random() * candidates.length)];
@@ -289,7 +290,7 @@ const TOWN = {
         if (inhabitant.family.members.length === 0) {
             this.remove(this.families, inhabitant.family);
         }
-        this.currentStep.deaths.push(inhabitant); //tener en cuenta que diesToday lo sacó del array members, ver si se mantiene la referencia
+        this.currentStep.deaths.push(inhabitant);
         this.currentStep.newEvents = true;
         this.population--;
     },
@@ -418,7 +419,7 @@ const SIMULATION = {
 
     clearSimulation() {
         clearInterval(this.simulation);
-        this.simulation = undefined;        //ver si es necesario este paso
+        this.simulation = undefined;
     },
 
     incrementDate() {
@@ -437,24 +438,3 @@ window.onload = async () => {
     });
     UI.runButton.removeAttribute("disabled");
 }
-
-//REALISMO
-//Corregir las edades a la que se casan las parejas y tienen hijos
-//La gente se casa demasiado pronto en el transcurso de la simulación
-//Chequear que ocurre cuando crecen los niños (puede ser añadiendo atributo de ciudadania: inmigrante o nativo)
-//Evitar que gente de la misma familia se case
-//Los apellidos son muy largos
-//Ver tamaños promedios de las familias (muy pocas de 3 hijos, muchas solteras)
-
-
-//OPTIMIZACIÓN
-//Añadir emigración cuando la población llegue a un número donde el programa se vuelve lento (aprox. 40 años, poblacion de 800 ya es muy lento), reducir la tasa de inmigración en esos casos
-//Forma de ganar eficiencia: dividir la gente en distintos arrays y que los métodos se apliquen a los arrays correspondientes en lugar de recorrer toda la población
-//Realizar algunas tareas anualmente (recuento de poblacion)
-//La API no permite más de 7 llamadas por minuto, pensar que hacer con el error por si llega a ocurrir
-
-//PROYECCION
-//Añadir registros familiares a las personas: hijos, fecha de matrimonio, exparejas
-//Permitir al usuario modificar variables
-//Permitir al usuario cancelar la simulacion, pausarla y reiniciarla, y controlar la velocidad
-//Avanzarlo progresivamente en GitHub. Añadir documentación con requisitos ya cumplidos y a cumplir
