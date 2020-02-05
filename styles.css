@@ -29,9 +29,10 @@ body {
     margin-bottom: 1em;
 }
 
-#date, #population {
-    display: inline-block;
+.state {
     margin: 1em 0;
+    display: flex;
+    justify-content: space-between;
 }
 
 .left {
