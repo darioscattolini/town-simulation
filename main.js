@@ -191,6 +191,7 @@ const TOWN = {
         marriages: [],
         births: []
     },
+    familyMemberRemovals: new Map(),
 
     updateState(today) {
         this.currentStep.date = today;
@@ -215,12 +216,15 @@ const TOWN = {
                             this.handleMarriage(member, mate);
                         }
                     }
-                } else {    //tiene un hijo?
+                } else {   
                     if (member.hasBabyToday()) {
                         this.handleBirth(member, today);
                     }
                 }
             }
+        }
+        if (this.familyMemberRemovals.size > 0) {
+            this.handleFamilyMemberRemovals();
         }
         this.currentStep.population = this.population;
         return this.currentStep;
@@ -254,14 +258,8 @@ const TOWN = {
         mate2.mate = mate1;
         this.remove(this.singles, mate1);
         this.remove(this.singles, mate2);
-        mate1.family.removeMember(mate1);
-        mate2.family.removeMember(mate2);
-        if (mate1.family.members.length === 0) {
-            this.remove(this.families, mate1.family);
-        }
-        if (mate2.family.members.length === 0) {
-            this.remove(this.families, mate2.family);
-        }
+        this.familyMemberRemovals.set(mate1.family, mate1);
+        this.familyMemberRemovals.set(mate2.family, mate2);
         mate1.family = new Family(mate1.firstSurname, mate2.firstSurname);
         mate2.family = mate1.family;
         mate1.family.members.push(mate1);
@@ -286,10 +284,7 @@ const TOWN = {
         } else {
             this.remove(this.singles, inhabitant);
         }
-        inhabitant.family.removeMember(inhabitant);
-        if (inhabitant.family.members.length === 0) {
-            this.remove(this.families, inhabitant.family);
-        }
+        this.familyMemberRemovals.set(inhabitant.family, inhabitant);
         this.currentStep.deaths.push(inhabitant);
         this.currentStep.newEvents = true;
         this.population--;
@@ -304,6 +299,19 @@ const TOWN = {
                 ? single.gender !== mateSeeker.gender 
                 : single.gender === mateSeeker.gender)
         }));
+    },
+
+    /* Remotion of people from arrays must be handled AFTER for loop executes in updateState() */
+    handleFamilyMemberRemovals() {
+        for (let remotion of this.familyMemberRemovals) {
+            let family = remotion[0];
+            let member = remotion[1];
+            family.removeMember(member);
+            if (family.members.length === 0) {
+                this.remove(this.families, family)
+            }
+        }
+        this.familyMemberRemovals.clear();
     },
 
     remove(array, element) {
@@ -407,7 +415,7 @@ const SIMULATION = {
             } else {
                 this.clearSimulation();
             }
-        }, 10);
+        }, 50);
     },
 
     async runStep() {
