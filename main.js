@@ -194,7 +194,6 @@ const TOWN = {
     familyMemberRemovals: new Map(),
 
     updateState(today) {
-        console.time("timer");
         this.currentStep.date = today;
 
         if (Math.random() + (12 / 365) >= 1) {
@@ -228,7 +227,6 @@ const TOWN = {
             this.handleFamilyMemberRemovals();
         }
         this.currentStep.population = this.population;
-        console.timeEnd("timer");
         return this.currentStep;
     },
 
@@ -420,10 +418,10 @@ const SIMULATION = {
         }, 10);
     },
 
-    async runStep() {
+    runStep() {
         this.logEntryData = TOWN.updateState(this.today);
         TOWN.clearCurrentStep();
-        await UI.displayState(this.logEntryData);        //esperar para que no se modifiquen los datos de this mientras se ejecuta displayState
+        UI.displayState(this.logEntryData);
         this.incrementDate();
     },
 
@@ -439,7 +437,7 @@ const SIMULATION = {
 
 /* SETTING UP
 **********************************************************************/
-window.onload = async () => {
+window.onready = async () => {
     await NAMES.retrieveNames();
     UI.runButton.addEventListener("click", () => {
         const selectedRange = parseInt(UI.rangeSelector.value);
