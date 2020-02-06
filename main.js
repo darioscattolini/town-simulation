@@ -194,6 +194,7 @@ const TOWN = {
     familyMemberRemovals: new Map(),
 
     updateState(today) {
+        console.time("timer");
         this.currentStep.date = today;
 
         if (Math.random() + (12 / 365) >= 1) {
@@ -227,6 +228,7 @@ const TOWN = {
             this.handleFamilyMemberRemovals();
         }
         this.currentStep.population = this.population;
+        console.timeEnd("timer");
         return this.currentStep;
     },
 
@@ -415,7 +417,7 @@ const SIMULATION = {
             } else {
                 this.clearSimulation();
             }
-        }, 50);
+        }, 10);
     },
 
     async runStep() {
