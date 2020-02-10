@@ -1,6 +1,11 @@
 /* FAMILY AND PERSON CLASSES
 **********************************************************************/
 class Family {
+    firstSurname;
+    secondSurname;
+    familyName;
+    members;
+
     constructor(firstSurname, secondSurname) {
         this.firstSurname = firstSurname,
         this.secondSurname = secondSurname,
@@ -15,6 +20,17 @@ class Family {
 }
 
 class Person {
+    origin;
+    family;
+    firstSurname;
+    secondSurname;
+    birthday;
+    age;
+    gender;
+    name;
+    sexualOrientation;
+    mate;
+
     constructor(origin, family) {
         this.origin = origin;
         this.family = family;
@@ -326,7 +342,7 @@ const UI = {
     familiesDisplay: document.querySelector("#families"),
     logbookDisplay: document.querySelector("#logbook"),
     runButton: document.querySelector("#run"),
-    rangeSelector: document.querySelector("#rangeSelector"),
+    rangeSelector: <HTMLInputElement>document.querySelector("#rangeSelector"),
 
     formatDate(date) {
         date = date.toLocaleDateString("es", {
