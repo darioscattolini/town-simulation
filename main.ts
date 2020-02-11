@@ -1,113 +1,79 @@
 /* FAMILY AND PERSON CLASSES
 **********************************************************************/
 class Family {
-    firstSurname;
-    secondSurname;
-    familyName;
-    members;
+    firstSurname: string;
+    secondSurname: string;
+    familyName: string;
+    members: Person[];
 
-    constructor(firstSurname, secondSurname) {
+    constructor(firstSurname: string, secondSurname: string) {
         this.firstSurname = firstSurname,
         this.secondSurname = secondSurname,
         this.familyName = `${firstSurname}-${secondSurname}`;
         this.members = [];
     }
 
-    removeMember(member) {
+    removeMember(member: Person) {
         let index = this.members.indexOf(member);
         this.members.splice(index, 1);
     }
 }
 
-class Person {
-    origin;
-    family;
-    firstSurname;
-    secondSurname;
-    birthday;
-    age;
-    gender;
-    name;
-    sexualOrientation;
-    mate;
+type Gender = "male" | "female";
 
-    constructor(origin, family) {
+class Person {
+    origin: string;
+    family: Family;
+    firstSurname: string;
+    secondSurname: string;
+    birthday: Date;
+    age!: number;
+    gender: Gender;
+    name: string;
+    sexualOrientation: string;
+    mate: Person | null;
+
+    constructor(origin: string, family: Family, today: Date) {
         this.origin = origin;
         this.family = family;
-        this.firstSurname = null;
-        this.secondSurname = null;
-        this.birthday = null;
-        this.age = null;
-        this.gender = null;
-        this.name = null;
-        this.sexualOrientation = null;
+        this.family.members.push(this);
+        this.firstSurname = family.firstSurname;
+        this.secondSurname = family.secondSurname;
+        this.birthday = origin === "native" ? new Date(today.getTime()) : this.createRandomBirthday(today);
+        this.updateAge(today);
+        this.gender = this.determineGender();
+        this.name = NAMES.pickName(this.gender);
+        this.sexualOrientation = Math.random() < 0.05 ? "gay" : "straight";
         this.mate = null;
     }
 
-    initialize(today) {
-        this.family.members.push(this);
-        this.setBirthday(today);
-        this.updateAge(today);
-        this.assignGender();
-        this.assignSurname();
-        this.assignName();
-        this.assignSexualOrientation();
-    }
-
-    setBirthday(today) {
+    createRandomBirthday(today: Date) {
         let date = new Date(today.getTime());
-        if (this.origin === "migrant") {
-            date.setFullYear( date.getFullYear() - Math.floor( Math.random() * 32 ) - 18 );
-            date.setMonth( Math.floor( Math.random() * 12 ) );
-            switch(date.getMonth()) {
-                case 0:
-                case 2:
-                case 4:
-                case 6:
-                case 7:
-                case 9:
-                case 11:
-                    date.setDate( Math.ceil( Math.random() * 31 ) );
-                    break;
-                case 3:
-                case 5:
-                case 8:
-                case 10:
-                    date.setDate( Math.ceil( Math.random() * 30 ) );
-                    break;
-                case 2:
-                    date.setDate( Math.ceil( Math.random() * 28 ) );
-            }
+        date.setFullYear(date.getFullYear() - Math.floor(Math.random() * 32) - 18);
+        date.setMonth(Math.floor(Math.random() * 12));
+        switch (date.getMonth()) {
+            case 0:
+            case 2:
+            case 4:
+            case 6:
+            case 7:
+            case 9:
+            case 11:
+                date.setDate(Math.ceil(Math.random() * 31));
+                break;
+            case 3:
+            case 5:
+            case 8:
+            case 10:
+                date.setDate(Math.ceil(Math.random() * 30));
+                break;
+            case 2:
+                date.setDate(Math.ceil(Math.random() * 28));
         }
-        this.birthday = date;    
+        return date;
     }
 
-    assignGender() {
-        //gender assigned by age according to https://ourworldindata.org/gender-ratio
-        //formula calculed with https://mycurvefit.com/
-
-        const maleProbability = 51.75622 - 0.0009850896 * this.age - 0.0005351376 * this.age ** 2;
-        this.gender = Math.random() * 100 < maleProbability ? "male" : "female";
-    }
-
-    assignSexualOrientation() {
-        this.sexualOrientation = Math.random() < 0.05 ? "gay" : "straight";
-    }
-
-    assignSurname() {
-        this.firstSurname = this.family.firstSurname;
-        this.secondSurname = this.family.secondSurname;
-    }
-
-    assignName() {
-        this.name = NAMES.pickName(this.gender);
-    }
-
-    fullName() {
-        return `${this.name} ${this.firstSurname} ${this.secondSurname}`;
-    }
-
-    updateAge(today) {
+    updateAge(today: Date) {
         if (this.birthday.getDate() === 28 && this.birthday.getMonth() === 1) {
             if (today.getMonth() >= 2) {
                 this.age = today.getFullYear() - this.birthday.getFullYear();
@@ -126,6 +92,18 @@ class Person {
             }
         }
     }
+    
+    determineGender() {
+        //gender assigned by age according to https://ourworldindata.org/gender-ratio
+        //formula calculed with https://mycurvefit.com/
+
+        const maleProbability = 51.75622 - 0.0009850896 * this.age - 0.0005351376 * this.age ** 2;
+        return Math.random() * 100 < maleProbability ? "male" : "female";
+    }
+
+    fullName() {
+        return `${this.name} ${this.firstSurname} ${this.secondSurname}`;
+    }
 
     marriesToday() {
         return Math.random() + (Math.abs(this.age - 31) < 10 ? 2 : 1) * (7 / 65 / 365) >= 1;
@@ -134,7 +112,7 @@ class Person {
     hasBabyToday() {
         return (
             (this.gender === "female") &&
-            (this.mate.gender === "male") &&
+            ((<Person>this.mate).gender === "male") &&
             (this.age < 51) &&
             (this.family.members.length > 2 ? this.family.members[this.family.members.length - 1].age >= 1 : true) &&
             (Math.random() + 0.0003 >= 1)    //3 hijos por mujer / días de fertilidad
@@ -153,19 +131,40 @@ class Person {
 
 /* GLOBAL CONSTANTS
 **********************************************************************/
-const NAMES = {
+interface APIPerson {
+    name: string;
+    surname: string;
+    gender: Gender;
+    region: string;
+}
+
+interface APIPeople {
+    [key: string]: APIPerson[];
+}
+
+interface Names {
+    [index: string]: any;
+    female: string[];
+    male: string[];
+    surnames: string[];
+    fetchPeopleFromAPI(region: string): Promise<APIPerson[]>;
+    retrieveNames(): Promise<boolean>;
+    pickName(field: string): string;
+}
+
+const NAMES: Names = {
     female: [],
     male: [],
     surnames: [],
 
-    async fetchPeopleFromAPI(region) {
+    async fetchPeopleFromAPI(region: string) {
         const response = await fetch(`https://uinames.com/api/?region=${region}&amount=500`);
-        const myJson = await response.json();
+        const myJson: Promise<APIPerson[]> = response.json();
         return myJson;
     },
 
     async retrieveNames() {
-        const people = {
+        const people: APIPeople = {
             spain: await this.fetchPeopleFromAPI("spain"),
             argentina: await this.fetchPeopleFromAPI("argentina"),
             mexico: await this.fetchPeopleFromAPI("mexico"),
@@ -187,6 +186,7 @@ const NAMES = {
                 }
             }
         }
+        return true;
     },
 
     pickName(field) {
@@ -194,34 +194,73 @@ const NAMES = {
     }
 }
 
-const TOWN = {
+class TOWNCurrentStep {
+    date: Date;
+    newEvents: boolean;
+    newImmigrant: null | Person;
+    deaths: Person[];
+    marriages: Family[];
+    births: Person[];
+    population: undefined | number;
+
+    constructor(today: Date) {
+        this.date = today;
+        this.newEvents = false;
+        this.newImmigrant = null;
+        this.deaths = [];
+        this.marriages = [];
+        this.births = [];
+        this.population = undefined;
+    }
+}
+
+interface FamilyUpdates {
+    marriages: Family[];
+    deaths: Person[];
+}
+
+interface TOWN {
+    population: number;
+    families: Family[];
+    singles: Person[];
+    familyUpdates: FamilyUpdates;
+    updateState(today: Date): TOWNCurrentStep;
+    handleImmigration(today: Date): Person;
+    handleMarriage(mate1: Person, mate2: Person): Family;
+    handleBirth(mother: Person, today: Date): Person;
+    handleDeath(inhabitant: Person): void;
+    getSuitableSingles(mateSeeker: Person): Person[];
+    handleCoupleFamilies(): void;
+    handleDeadFamily(): void;
+    removeFromFamily(member: Person): void;
+    remove(array: any[], element: any): void;
+}
+
+const TOWN: TOWN = {
     population: 0,
     families: [],
     singles: [],
-    currentStep: {
-        newEvents: false,
-        date: null,
-        population: null,
-        newImmigrant: null,
-        deaths: [],
+    familyUpdates: {
         marriages: [],
-        births: []
+        deaths: []
     },
-    familyMemberRemovals: new Map(),
 
     updateState(today) {
-        this.currentStep.date = today;
+        const currentStep = new TOWNCurrentStep(today);
 
         if (Math.random() + (12 / 365) >= 1) {
-            this.handleImmigration(today)
+            currentStep.newImmigrant = this.handleImmigration(today);
+            currentStep.newEvents = true;
         }
 
         for (let family of this.families) {
             for (let member of family.members) {
                 member.updateAge(today);
 
-                if (member.diesToday()) { 
+                if (member.diesToday()) {
                     this.handleDeath(member);
+                    currentStep.deaths.push(member);
+                    currentStep.newEvents = true;
                 };
 
                 if (member.mate === null) {
@@ -229,44 +268,36 @@ const TOWN = {
                         const candidates = this.getSuitableSingles(member);
                         if (candidates.length > 0 && member.marriesToday()) {
                             const mate = candidates[Math.floor(Math.random() * candidates.length)];
-                            this.handleMarriage(member, mate);
+                            currentStep.marriages.push(this.handleMarriage(member, mate));
+                            currentStep.newEvents = true;
                         }
                     }
                 } else {   
                     if (member.hasBabyToday()) {
-                        this.handleBirth(member, today);
+                        currentStep.births.push(this.handleBirth(member, today));
+                        currentStep.newEvents = true;
+                        ;
                     }
                 }
             }
         }
-        if (this.familyMemberRemovals.size > 0) {
-            this.handleFamilyMemberRemovals();
+        if (this.familyUpdates.marriages.length > 0) {
+            this.handleCoupleFamilies();
         }
-        this.currentStep.population = this.population;
-        return this.currentStep;
-    },
-
-    clearCurrentStep() {
-        this.currentStep = {
-            newEvents: false,
-            date: null,
-            population: null,
-            newImmigrant: null,
-            deaths: [],
-            marriages: [],
-            births: []
+        if (this.familyUpdates.deaths.length > 0) {
+            this.handleDeadFamily();
         }
+        currentStep.population = this.population;
+        return currentStep;
     },
 
     handleImmigration(today) {
         const family = new Family(NAMES.pickName("surnames"), NAMES.pickName("surnames"));
-        const person = new Person("migrant", family);
-        person.initialize(today);
+        const person = new Person("migrant", family, today);
         this.families.push(family);
         this.singles.push(person);
-        this.currentStep.newImmigrant = person;
-        this.currentStep.newEvents = true;
         this.population++;
+        return person;
     },
 
     handleMarriage(mate1, mate2) {
@@ -274,35 +305,27 @@ const TOWN = {
         mate2.mate = mate1;
         this.remove(this.singles, mate1);
         this.remove(this.singles, mate2);
-        this.familyMemberRemovals.set(mate1.family, mate1);
-        this.familyMemberRemovals.set(mate2.family, mate2);
-        mate1.family = new Family(mate1.firstSurname, mate2.firstSurname);
-        mate2.family = mate1.family;
-        mate1.family.members.push(mate1);
-        mate1.family.members.push(mate2);
-        this.families.push(mate1.family);
-        this.currentStep.marriages.push(mate1.family);
-        this.currentStep.newEvents = true;
+        const newFamily = new Family(mate1.firstSurname, mate2.firstSurname);
+        newFamily.members.push(mate1);
+        newFamily.members.push(mate2);
+        this.familyUpdates.marriages.push(newFamily);
+        return newFamily;
     },
 
     handleBirth(mother, today) {
-        const baby = new Person ("native", mother.family);
-        baby.initialize(today);
-        this.currentStep.births.push(baby);
-        this.currentStep.newEvents = true;
+        const baby = new Person ("native", mother.family, today);
         this.population++;
+        return baby;
     },
 
-    handleDeath(inhabitant) {
-        if (inhabitant.mate !== null) {
-            inhabitant.mate.mate = null;
-            this.singles.push(inhabitant.mate);
+    handleDeath(dead) {
+        if (dead.mate !== null) {
+            dead.mate.mate = null;
+            this.singles.push(dead.mate);
         } else {
-            this.remove(this.singles, inhabitant);
+            this.remove(this.singles, dead);
         }
-        this.familyMemberRemovals.set(inhabitant.family, inhabitant);
-        this.currentStep.deaths.push(inhabitant);
-        this.currentStep.newEvents = true;
+        this.familyUpdates.deaths.push(dead);
         this.population--;
     },
 
@@ -317,17 +340,30 @@ const TOWN = {
         }));
     },
 
-    /* Remotion of people from arrays must be handled AFTER for loop executes in updateState() */
-    handleFamilyMemberRemovals() {
-        for (let remotion of this.familyMemberRemovals) {
-            let family = remotion[0];
-            let member = remotion[1];
-            family.removeMember(member);
-            if (family.members.length === 0) {
-                this.remove(this.families, family)
-            }
+    /* Remotion/addition of people from/to arrays must be handled AFTER for loop executes in updateState() */
+    handleCoupleFamilies() {
+        for (let couple of this.familyUpdates.marriages) {
+            this.removeFromFamily(couple.members[0]);
+            couple.members[0].family = couple;
+            this.removeFromFamily(couple.members[1]);
+            couple.members[1].family = couple;
+            this.families.push(couple);
         }
-        this.familyMemberRemovals.clear();
+        this.familyUpdates.marriages = [];
+    },
+
+    handleDeadFamily() {
+        for (let dead of this.familyUpdates.deaths) {
+            this.removeFromFamily(dead);
+        }
+        this.familyUpdates.deaths = [];
+    },
+
+    removeFromFamily(member) {
+        member.family.removeMember(member);
+        if (member.family.members.length === 0) {
+            this.remove(this.families, member.family)
+        }
     },
 
     remove(array, element) {
@@ -337,15 +373,15 @@ const TOWN = {
 }
 
 const UI = {
-    date: document.querySelector("#date"),
-    populationDisplay: document.querySelector("#population"),
-    familiesDisplay: document.querySelector("#families"),
-    logbookDisplay: document.querySelector("#logbook"),
-    runButton: document.querySelector("#run"),
+    date: <Element>document.querySelector("#date"),
+    populationDisplay: <Element>document.querySelector("#population"),
+    familiesDisplay: <Element>document.querySelector("#families"),
+    logbookDisplay: <Element>document.querySelector("#logbook"),
+    runButton: <Element>document.querySelector("#run"),
     rangeSelector: <HTMLInputElement>document.querySelector("#rangeSelector"),
 
-    formatDate(date) {
-        date = date.toLocaleDateString("es", {
+    formatDate(date: Date) {
+        let dateString = date.toLocaleDateString("es", {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
@@ -353,18 +389,18 @@ const UI = {
         });
 
         let formattedDate = "";
-        for (let i = 0; i < date.length; i++) {
+        for (let i = 0; i < dateString.length; i++) {
             if (i === 0) {
-                formattedDate += date[i].toUpperCase();
-            } else if (date[i] !== ",") {
-                formattedDate += date[i];
+                formattedDate += dateString[i].toUpperCase();
+            } else if (dateString[i] !== ",") {
+                formattedDate += dateString[i];
             }
         }
 
         return formattedDate;
     },
 
-    displayState(logEntryData) {
+    displayState(logEntryData: TOWNCurrentStep) {
         this.date.innerHTML = this.formatDate(logEntryData.date);
         this.populationDisplay.innerHTML = `Población total: ${logEntryData.population}`;
         this.familiesDisplay.innerHTML = this.displayFamilies(TOWN.families);
@@ -373,7 +409,7 @@ const UI = {
         }
     },
 
-    displayFamilies(families) {
+    displayFamilies(families: Family[]) {
         let tableContent = "";
         for (let family of families) {
             let members = "";
@@ -391,7 +427,7 @@ const UI = {
         return `${families.length === 0 ? "" : table}`;
     },
 
-    displayEvents(logEntryData) {
+    displayEvents(logEntryData: TOWNCurrentStep) {
         let entry = `<dt>${logEntryData.date.toLocaleDateString("es-ES")}</dt><dd>`;
         
         if (logEntryData.newImmigrant !== null) {
@@ -413,16 +449,16 @@ const UI = {
     }
 }
 
-const SIMULATION = {
-    today: undefined,
-    end: undefined,
-    simulation: undefined,
-    logEntryData: undefined,
+class Simulation {
+    today: Date;
+    end: Date;
+    simulation: undefined | number;
+    logEntryData: undefined;
 
-    setRange(selectedRange) {
+    constructor(selectedRange: number) {
         this.today = new Date();
-        this.end   = new Date(this.today.getTime()).setFullYear(this.today.getFullYear() + selectedRange);
-    },
+        this.end   = new Date(new Date(this.today.getTime()).setFullYear(this.today.getFullYear() + selectedRange));
+    }
 
     runSimulation() {
         this.simulation = setInterval(() => {
@@ -432,19 +468,18 @@ const SIMULATION = {
                 this.clearSimulation();
             }
         }, 10);
-    },
+    }
 
     runStep() {
-        this.logEntryData = TOWN.updateState(this.today);
-        TOWN.clearCurrentStep();
-        UI.displayState(this.logEntryData);
+        const logEntryData = TOWN.updateState(this.today);
+        UI.displayState(logEntryData);
         this.incrementDate();
-    },
+    }
 
     clearSimulation() {
         clearInterval(this.simulation);
         this.simulation = undefined;
-    },
+    }
 
     incrementDate() {
         this.today.setDate(this.today.getDate() + 1);
@@ -457,8 +492,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     await NAMES.retrieveNames();
     UI.runButton.addEventListener("click", () => {
         const selectedRange = parseInt(UI.rangeSelector.value);
-        SIMULATION.setRange(selectedRange);
-        SIMULATION.runSimulation();
+        const simulation = new Simulation(selectedRange);
+        simulation.runSimulation();
     });
     UI.runButton.removeAttribute("disabled");
 });

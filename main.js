@@ -1,3 +1,4 @@
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -34,7 +35,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var _this = this;
 /* FAMILY AND PERSON CLASSES
 **********************************************************************/
 var Family = /** @class */ (function () {
@@ -51,72 +51,43 @@ var Family = /** @class */ (function () {
     return Family;
 }());
 var Person = /** @class */ (function () {
-    function Person(origin, family) {
+    function Person(origin, family, today) {
         this.origin = origin;
         this.family = family;
-        this.firstSurname = null;
-        this.secondSurname = null;
-        this.birthday = null;
-        this.age = null;
-        this.gender = null;
-        this.name = null;
-        this.sexualOrientation = null;
+        this.family.members.push(this);
+        this.firstSurname = family.firstSurname;
+        this.secondSurname = family.secondSurname;
+        this.birthday = origin === "native" ? new Date(today.getTime()) : this.createRandomBirthday(today);
+        this.updateAge(today);
+        this.gender = this.determineGender();
+        this.name = NAMES.pickName(this.gender);
+        this.sexualOrientation = Math.random() < 0.05 ? "gay" : "straight";
         this.mate = null;
     }
-    Person.prototype.initialize = function (today) {
-        this.family.members.push(this);
-        this.setBirthday(today);
-        this.updateAge(today);
-        this.assignGender();
-        this.assignSurname();
-        this.assignName();
-        this.assignSexualOrientation();
-    };
-    Person.prototype.setBirthday = function (today) {
+    Person.prototype.createRandomBirthday = function (today) {
         var date = new Date(today.getTime());
-        if (this.origin === "migrant") {
-            date.setFullYear(date.getFullYear() - Math.floor(Math.random() * 32) - 18);
-            date.setMonth(Math.floor(Math.random() * 12));
-            switch (date.getMonth()) {
-                case 0:
-                case 2:
-                case 4:
-                case 6:
-                case 7:
-                case 9:
-                case 11:
-                    date.setDate(Math.ceil(Math.random() * 31));
-                    break;
-                case 3:
-                case 5:
-                case 8:
-                case 10:
-                    date.setDate(Math.ceil(Math.random() * 30));
-                    break;
-                case 2:
-                    date.setDate(Math.ceil(Math.random() * 28));
-            }
+        date.setFullYear(date.getFullYear() - Math.floor(Math.random() * 32) - 18);
+        date.setMonth(Math.floor(Math.random() * 12));
+        switch (date.getMonth()) {
+            case 0:
+            case 2:
+            case 4:
+            case 6:
+            case 7:
+            case 9:
+            case 11:
+                date.setDate(Math.ceil(Math.random() * 31));
+                break;
+            case 3:
+            case 5:
+            case 8:
+            case 10:
+                date.setDate(Math.ceil(Math.random() * 30));
+                break;
+            case 2:
+                date.setDate(Math.ceil(Math.random() * 28));
         }
-        this.birthday = date;
-    };
-    Person.prototype.assignGender = function () {
-        //gender assigned by age according to https://ourworldindata.org/gender-ratio
-        //formula calculed with https://mycurvefit.com/
-        var maleProbability = 51.75622 - 0.0009850896 * this.age - 0.0005351376 * Math.pow(this.age, 2);
-        this.gender = Math.random() * 100 < maleProbability ? "male" : "female";
-    };
-    Person.prototype.assignSexualOrientation = function () {
-        this.sexualOrientation = Math.random() < 0.05 ? "gay" : "straight";
-    };
-    Person.prototype.assignSurname = function () {
-        this.firstSurname = this.family.firstSurname;
-        this.secondSurname = this.family.secondSurname;
-    };
-    Person.prototype.assignName = function () {
-        this.name = NAMES.pickName(this.gender);
-    };
-    Person.prototype.fullName = function () {
-        return this.name + " " + this.firstSurname + " " + this.secondSurname;
+        return date;
     };
     Person.prototype.updateAge = function (today) {
         if (this.birthday.getDate() === 28 && this.birthday.getMonth() === 1) {
@@ -138,6 +109,15 @@ var Person = /** @class */ (function () {
             }
         }
     };
+    Person.prototype.determineGender = function () {
+        //gender assigned by age according to https://ourworldindata.org/gender-ratio
+        //formula calculed with https://mycurvefit.com/
+        var maleProbability = 51.75622 - 0.0009850896 * this.age - 0.0005351376 * Math.pow(this.age, 2);
+        return Math.random() * 100 < maleProbability ? "male" : "female";
+    };
+    Person.prototype.fullName = function () {
+        return this.name + " " + this.firstSurname + " " + this.secondSurname;
+    };
     Person.prototype.marriesToday = function () {
         return Math.random() + (Math.abs(this.age - 31) < 10 ? 2 : 1) * (7 / 65 / 365) >= 1;
     };
@@ -158,8 +138,6 @@ var Person = /** @class */ (function () {
     };
     return Person;
 }());
-/* GLOBAL CONSTANTS
-**********************************************************************/
 var NAMES = {
     female: [],
     male: [],
@@ -172,9 +150,7 @@ var NAMES = {
                     case 0: return [4 /*yield*/, fetch("https://uinames.com/api/?region=" + region + "&amount=500")];
                     case 1:
                         response = _a.sent();
-                        return [4 /*yield*/, response.json()];
-                    case 2:
-                        myJson = _a.sent();
+                        myJson = response.json();
                         return [2 /*return*/, myJson];
                 }
             });
@@ -216,7 +192,7 @@ var NAMES = {
                                 }
                             }
                         }
-                        return [2 /*return*/];
+                        return [2 /*return*/, true];
                 }
             });
         });
@@ -225,24 +201,31 @@ var NAMES = {
         return this[field][Math.floor(this[field].length * Math.random())];
     }
 };
+var TOWNCurrentStep = /** @class */ (function () {
+    function TOWNCurrentStep(today) {
+        this.date = today;
+        this.newEvents = false;
+        this.newImmigrant = null;
+        this.deaths = [];
+        this.marriages = [];
+        this.births = [];
+        this.population = undefined;
+    }
+    return TOWNCurrentStep;
+}());
 var TOWN = {
     population: 0,
     families: [],
     singles: [],
-    currentStep: {
-        newEvents: false,
-        date: null,
-        population: null,
-        newImmigrant: null,
-        deaths: [],
+    familyUpdates: {
         marriages: [],
-        births: []
+        deaths: []
     },
-    familyMemberRemovals: new Map(),
     updateState: function (today) {
-        this.currentStep.date = today;
+        var currentStep = new TOWNCurrentStep(today);
         if (Math.random() + (12 / 365) >= 1) {
-            this.handleImmigration(today);
+            currentStep.newImmigrant = this.handleImmigration(today);
+            currentStep.newEvents = true;
         }
         for (var _i = 0, _a = this.families; _i < _a.length; _i++) {
             var family = _a[_i];
@@ -251,6 +234,8 @@ var TOWN = {
                 member.updateAge(today);
                 if (member.diesToday()) {
                     this.handleDeath(member);
+                    currentStep.deaths.push(member);
+                    currentStep.newEvents = true;
                 }
                 ;
                 if (member.mate === null) {
@@ -258,77 +243,62 @@ var TOWN = {
                         var candidates = this.getSuitableSingles(member);
                         if (candidates.length > 0 && member.marriesToday()) {
                             var mate = candidates[Math.floor(Math.random() * candidates.length)];
-                            this.handleMarriage(member, mate);
+                            currentStep.marriages.push(this.handleMarriage(member, mate));
+                            currentStep.newEvents = true;
                         }
                     }
                 }
                 else {
                     if (member.hasBabyToday()) {
-                        this.handleBirth(member, today);
+                        currentStep.births.push(this.handleBirth(member, today));
+                        currentStep.newEvents = true;
+                        ;
                     }
                 }
             }
         }
-        if (this.familyMemberRemovals.size > 0) {
-            this.handleFamilyMemberRemovals();
+        if (this.familyUpdates.marriages.length > 0) {
+            this.handleCoupleFamilies();
         }
-        this.currentStep.population = this.population;
-        return this.currentStep;
-    },
-    clearCurrentStep: function () {
-        this.currentStep = {
-            newEvents: false,
-            date: null,
-            population: null,
-            newImmigrant: null,
-            deaths: [],
-            marriages: [],
-            births: []
-        };
+        if (this.familyUpdates.deaths.length > 0) {
+            this.handleDeadFamily();
+        }
+        currentStep.population = this.population;
+        return currentStep;
     },
     handleImmigration: function (today) {
         var family = new Family(NAMES.pickName("surnames"), NAMES.pickName("surnames"));
-        var person = new Person("migrant", family);
-        person.initialize(today);
+        var person = new Person("migrant", family, today);
         this.families.push(family);
         this.singles.push(person);
-        this.currentStep.newImmigrant = person;
-        this.currentStep.newEvents = true;
         this.population++;
+        return person;
     },
     handleMarriage: function (mate1, mate2) {
         mate1.mate = mate2;
         mate2.mate = mate1;
         this.remove(this.singles, mate1);
         this.remove(this.singles, mate2);
-        this.familyMemberRemovals.set(mate1.family, mate1);
-        this.familyMemberRemovals.set(mate2.family, mate2);
-        mate1.family = new Family(mate1.firstSurname, mate2.firstSurname);
-        mate2.family = mate1.family;
-        mate1.family.members.push(mate1);
-        mate1.family.members.push(mate2);
-        this.families.push(mate1.family);
-        this.currentStep.marriages.push(mate1.family);
-        this.currentStep.newEvents = true;
+        var newFamily = new Family(mate1.firstSurname, mate2.firstSurname);
+        newFamily.members.push(mate1);
+        newFamily.members.push(mate2);
+        this.familyUpdates.marriages.push(newFamily);
+        return newFamily;
     },
     handleBirth: function (mother, today) {
-        var baby = new Person("native", mother.family);
-        baby.initialize(today);
-        this.currentStep.births.push(baby);
-        this.currentStep.newEvents = true;
+        var baby = new Person("native", mother.family, today);
         this.population++;
+        return baby;
     },
-    handleDeath: function (inhabitant) {
-        if (inhabitant.mate !== null) {
-            inhabitant.mate.mate = null;
-            this.singles.push(inhabitant.mate);
+    handleDeath: function (dead) {
+        if (dead.mate !== null) {
+            dead.mate.mate = null;
+            this.singles.push(dead.mate);
         }
         else {
-            this.remove(this.singles, inhabitant);
+            this.remove(this.singles, dead);
         }
-        this.familyMemberRemovals.set(inhabitant.family, inhabitant);
-        this.currentStep.deaths.push(inhabitant);
-        this.currentStep.newEvents = true;
+        this.familyUpdates.deaths.push(dead);
         this.population--;
     },
     getSuitableSingles: function (mateSeeker) {
@@ -341,18 +311,30 @@ var TOWN = {
                     : single.gender === mateSeeker.gender);
         }));
     },
-    /* Remotion of people from arrays must be handled AFTER for loop executes in updateState() */
-    handleFamilyMemberRemovals: function () {
-        for (var _i = 0, _a = this.familyMemberRemovals; _i < _a.length; _i++) {
-            var remotion = _a[_i];
-            var family = remotion[0];
-            var member = remotion[1];
-            family.removeMember(member);
-            if (family.members.length === 0) {
-                this.remove(this.families, family);
-            }
+    /* Remotion/addition of people from/to arrays must be handled AFTER for loop executes in updateState() */
+    handleCoupleFamilies: function () {
+        for (var _i = 0, _a = this.familyUpdates.marriages; _i < _a.length; _i++) {
+            var couple = _a[_i];
+            this.removeFromFamily(couple.members[0]);
+            couple.members[0].family = couple;
+            this.removeFromFamily(couple.members[1]);
+            couple.members[1].family = couple;
+            this.families.push(couple);
         }
-        this.familyMemberRemovals.clear();
+        this.familyUpdates.marriages = [];
+    },
+    handleDeadFamily: function () {
+        for (var _i = 0, _a = this.familyUpdates.deaths; _i < _a.length; _i++) {
+            var dead = _a[_i];
+            this.removeFromFamily(dead);
+        }
+        this.familyUpdates.deaths = [];
+    },
+    removeFromFamily: function (member) {
+        member.family.removeMember(member);
+        if (member.family.members.length === 0) {
+            this.remove(this.families, member.family);
+        }
     },
     remove: function (array, element) {
         var index = array.indexOf(element);
@@ -367,19 +349,19 @@ var UI = {
     runButton: document.querySelector("#run"),
     rangeSelector: document.querySelector("#rangeSelector"),
     formatDate: function (date) {
-        date = date.toLocaleDateString("es", {
+        var dateString = date.toLocaleDateString("es", {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
             day: 'numeric'
         });
         var formattedDate = "";
-        for (var i = 0; i < date.length; i++) {
+        for (var i = 0; i < dateString.length; i++) {
             if (i === 0) {
-                formattedDate += date[i].toUpperCase();
+                formattedDate += dateString[i].toUpperCase();
             }
-            else if (date[i] !== ",") {
-                formattedDate += date[i];
+            else if (dateString[i] !== ",") {
+                formattedDate += dateString[i];
             }
         }
         return formattedDate;
@@ -427,16 +409,12 @@ var UI = {
         return entry;
     }
 };
-var SIMULATION = {
-    today: undefined,
-    end: undefined,
-    simulation: undefined,
-    logEntryData: undefined,
-    setRange: function (selectedRange) {
+var Simulation = /** @class */ (function () {
+    function Simulation(selectedRange) {
         this.today = new Date();
-        this.end = new Date(this.today.getTime()).setFullYear(this.today.getFullYear() + selectedRange);
-    },
-    runSimulation: function () {
+        this.end = new Date(new Date(this.today.getTime()).setFullYear(this.today.getFullYear() + selectedRange));
+    }
+    Simulation.prototype.runSimulation = function () {
         var _this = this;
         this.simulation = setInterval(function () {
             if (_this.today < _this.end) {
@@ -446,24 +424,24 @@ var SIMULATION = {
                 _this.clearSimulation();
             }
         }, 10);
-    },
-    runStep: function () {
-        this.logEntryData = TOWN.updateState(this.today);
-        TOWN.clearCurrentStep();
-        UI.displayState(this.logEntryData);
+    };
+    Simulation.prototype.runStep = function () {
+        var logEntryData = TOWN.updateState(this.today);
+        UI.displayState(logEntryData);
         this.incrementDate();
-    },
-    clearSimulation: function () {
+    };
+    Simulation.prototype.clearSimulation = function () {
         clearInterval(this.simulation);
         this.simulation = undefined;
-    },
-    incrementDate: function () {
+    };
+    Simulation.prototype.incrementDate = function () {
         this.today.setDate(this.today.getDate() + 1);
-    }
-};
+    };
+    return Simulation;
+}());
 /* SETTING UP
 **********************************************************************/
-window.addEventListener("DOMContentLoaded", function () { return __awaiter(_this, void 0, void 0, function () {
+window.addEventListener("DOMContentLoaded", function () { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, NAMES.retrieveNames()];
@@ -471,8 +449,8 @@ window.addEventListener("DOMContentLoaded", function () { return __awaiter(_this
                 _a.sent();
                 UI.runButton.addEventListener("click", function () {
                     var selectedRange = parseInt(UI.rangeSelector.value);
-                    SIMULATION.setRange(selectedRange);
-                    SIMULATION.runSimulation();
+                    var simulation = new Simulation(selectedRange);
+                    simulation.runSimulation();
                 });
                 UI.runButton.removeAttribute("disabled");
                 return [2 /*return*/];
