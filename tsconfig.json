@@ -1,7 +1,11 @@
 {
     "compilerOptions": {
+        "outFile": "./dist/main.js",
         "target":"ES5",
         "lib": [ "es2015", "es2016", "dom"],
-        "strict": true
+        "strict": true,
+        "watch": true,
+        "module": "none",
+        "noEmitOnError": true,
     }
 }

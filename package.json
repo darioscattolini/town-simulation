@@ -1,0 +1,22 @@
+{
+  "name": "town-simulator",
+  "version": "1.0.0",
+  "description": "Town Simulator",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/darioscattolini/town-simulator.git"
+  },
+  "author": "Darío Scattolini",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/darioscattolini/town-simulator/issues"
+  },
+  "homepage": "https://github.com/darioscattolini/town-simulator#readme",
+  "devDependencies": {
+    "typescript": "^4.0.2"
+  }
+}
