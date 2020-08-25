@@ -9,7 +9,7 @@ This is my second (and deeper) approach to Object Oriented Programming, and my f
 ## Built with
 * Just the minimum HTML and CSS.
 * Focus on JavaScript functionality.
-* Access to [UINames](https://uinames.com/) API to fetch names for people in the town.
+* Access to [RandomUser](https://randomuser.me/) API to fetch names for people in the town.
 
 ## Status
 _in progress_
