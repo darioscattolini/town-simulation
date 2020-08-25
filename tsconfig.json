@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "outFile": "./dist/main.js",
+        "outFile": "./main.js",
         "target":"ES5",
         "lib": [ "es2015", "es2016", "dom"],
         "strict": true,
